@@ -65,8 +65,8 @@ The library supports over 200 waveform types, including standard oscillators, ph
 *   `!`: Triangle
 *   `k`: Karplus-Strong (Plucked String)
 *   `l`: Bell FM
-*   `ðŸ¥`: Kick Drum
-*   `ðŸ¥¤`: Snare Crack
+*   `🥁`: Kick Drum
+*   `𝕤`: Snare Crack
 *   `*`: White Noise
 *   `&`: Pink Noise
 
