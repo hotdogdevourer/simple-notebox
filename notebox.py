@@ -3,6 +3,7 @@ from scipy import signal
 from scipy.io import wavfile
 import math
 import re
+import time
 from dataclasses import dataclass, field
 from typing import Optional, List, Union, Tuple
 SAMPLE_RATE = 44100
@@ -2939,18 +2940,6 @@ class Oscillator:
                 grain = np.sin(2*np.pi*grain_freq*g_t) * signal.windows.hann(grain_len)
                 result[pos:pos+grain_len] += grain * 0.2
             return result
-        if wave_type == "waveguide_tube":
-            delay = max(2, int(self.sr / freq))
-            buffer = np.zeros(delay)
-            output = np.zeros_like(t)
-            excite = signal.square(phase)
-            for i in range(len(t)):
-                idx = i % delay
-                output[i] = buffer[idx]
-                new_val = excite[i] * 0.05 - buffer[(idx-1)%delay] * 0.999
-                buffer[idx] = (buffer[idx] + new_val) * 0.5
-            mx = np.max(np.abs(output))
-            return output / (mx + 1e-9)
         if wave_type == "waveguide_conical":
             delay = max(2, int(self.sr / freq))
             buffer = np.zeros(delay)
@@ -5267,6 +5256,7 @@ class IrisSynthesizer:
             print(f"    {repr(sym):6s} → {wmap[sym]}")
         print("\n" + "═"*60)
 print(IrisLanguageParser.WAVE_MAP)
+
 DAISY_PITCHES = np.array([
     60,   70,   70,
     60,   70,   70,
@@ -5298,3 +5288,48 @@ synth.compile_from_arrays(
     bpm=330
 )
 synth.save_wav("daisy_midi.wav")
+unuse = """
+idx=0
+for _, wave in IrisLanguageParser.WAVE_MAP.items():
+    try:
+
+        DAISY_PITCHES = np.array([
+            60,   70,   70,
+            60,   70,   70,
+            60,   70,   70,
+            60,   70,   70,
+
+            74, 71, 67, 62, 64, 66, 67, 64, 67, 62,
+            69, 74, 71, 67, 64, 66, 67, 69, 71, 69,
+
+            71, 72, 71, 69, 74, 71, 69, 67, 69, 71, 67, 64, 67, 64, 62,
+            62, 67, 71, 69, 62, 67, 71, 69, 71, 72, 74, 71, 67, 69, 62, 67
+        ])
+        DAISY_TIMINGS = np.array([
+            2.5,  2.5,  2.5,
+            2.5,  2.5,  2.5,
+            2.5,  2.5,  2.5,
+            2.5,  2.5,  2.5,
+
+            3,  3,  3,  3,  1,  1,  1,  2,  1,  6,
+            3,  3,  3,  3,  1,  1,  1,  2,  1,  6,
+
+            1,  1,  1,  1,  2,  1,  1,  4,  1,  2,  1,  2,  1,  1,  5,
+            1,  2,  1,  2,  1,  2,  1,  1,  1,  1,  1,  1,  1,  2,  1,  6
+        ])
+        synth = IrisSynthesizer()
+        print(idx)
+        synth.compile_from_arrays(
+            DAISY_PITCHES, 
+            DAISY_TIMINGS, 
+            wave=wave, 
+            note_is_midi=1,
+            time_unit="beat", 
+            ease_out=True,
+            bpm=330
+        )
+        synth.save_wav(f"C:/cp/notebox/examples/daisy_{wave}.wav")
+    except:
+        pass"""
+    
+    idx += 1
