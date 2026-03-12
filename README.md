@@ -10,7 +10,7 @@ A procedural audio synthesis library and command-line tool written in Python. No
 - **Physical Modeling**: Simulates strings, membranes, tubes, and resonant bodies.
 - **Vintage Emulation**: Models specific synthesizers, drum machines, and computer audio chips from the 1970s to 1990s.
 - **Standard Audio Output**: Generates high-quality 44.1kHz WAV files.
-- **Similar Sounds**: Please do not worry about similar waveform sounds as i am a single developer and can't debug all sounds :c
+- **Similar Sounds**: Please do not worry about similar waveform sounds as i am a single developer and can't debug all sounds :c. Some algorithms also are similar that's also why. 
 
 ## Installation
 
