@@ -6435,7 +6435,7 @@ class SynthCommand:
     noise_type: Optional[str] = None
     nostalgic: Optional[Tuple[int, Optional[int]]] = None
     polyphones: Optional[List[Tuple[Union[str, float], int, float]]] = None
-class IrisLanguageParser:
+class SimpleNoteboxLanguageParser:
     WAVE_MAP = {
         'ts': 'treesis',
         'av': 'avalatch',
@@ -7228,11 +7228,11 @@ class IrisLanguageParser:
             ease_out=ease_out, is_rest=is_rest, vibrato=vibrato,
             noise_type=noise_type, nostalgic=nostalgic, polyphones=polyphones
         )
-class IrisSynthesizer:
+class SimpleNoteboxSynthesizer:
     def __init__(self):
         self.sr = SAMPLE_RATE
         self.osc = Oscillator(self.sr)
-        self.parser = IrisLanguageParser()
+        self.parser = SimpleNoteboxLanguageParser()
         self.audio_buffer = np.array([])
     def apply_envelope(self, sig, fade_ms=12):
         n = len(sig)
@@ -7323,22 +7323,7 @@ class IrisSynthesizer:
         audio_int16 = (self.audio_buffer * 32767).astype(np.int16)
         wavfile.write(filename, self.sr, audio_int16)
         print("Saved:", filename)
-    def print_wave_catalog(self):
-        wmap = IrisLanguageParser.WAVE_MAP
-        noise_syms = IrisLanguageParser.NOISE_SYMBOLS
-        print("\n" + "═"*60)
-        print("  IRIS SYNTHESIZER — FULL WAVE CATALOG")
-        print("═"*60)
-        print(f"\n  WAVE TYPES ({sum(1 for s in wmap if s not in noise_syms)} oscillators):")
-        for sym, name in wmap.items():
-            if sym not in noise_syms:
-                print(f"    {repr(sym):6s} → {name}")
-        print(f"\n  NOISE TYPES ({len(noise_syms)} generators):")
-        for sym in noise_syms:
-            print(f"    {repr(sym):6s} → {wmap[sym]}")
-        print("\n" + "═"*60)
-print(IrisLanguageParser.WAVE_MAP)
-idx=0
+
 DAISY_PITCHES = np.array([
     60,   70,   70,
     60,   70,   70,
@@ -7364,8 +7349,7 @@ DAISY_TIMINGS = np.array([
     1,  2,  1,  2,  1,  2,  1,  1,  1,  1,  1,  1,  1,  2,  1,  6
 ])
     
-synth = IrisSynthesizer()
-print(idx)
+synth = SimpleNoteboxSynthesizer()
 wave = "resonator_plate"
 synth.compile_from_arrays(
     DAISY_PITCHES, 
