@@ -1,16 +1,20 @@
 # Notebox
 
-Notebox is a programmatic synthesizer engine written in Python. It utilizes NumPy and SciPy to generate audio waveforms, noise textures, and musical sequences via a custom scripting language called Iris Language.
+A procedural audio synthesis library and command-line tool written in Python. Notebox generates complex waveforms, instrument emulations, chaotic oscillators, and noise textures using numerical computing techniques. It features a custom scripting language for sequencing and supports a wide variety of synthesis methods including FM, additive, physical modeling, and granular synthesis.
 
-## Requirements
+## Features
 
-*   Python 3.6+
-*   NumPy
-*   SciPy
+- **Extensive Waveform Library**: Over 300 unique waveform types ranging from standard analog shapes to chaotic attractors and vintage chip emulations.
+- **Custom Scripting Language**: A concise syntax for defining notes, durations, wave types, and modulation parameters.
+- **Procedural Noise Generation**: Includes colored noise, environmental textures, and algorithmic sound effects.
+- **Physical Modeling**: Simulates strings, membranes, tubes, and resonant bodies.
+- **Vintage Emulation**: Models specific synthesizers, drum machines, and computer audio chips from the 1970s to 1990s.
+- **Standard Audio Output**: Generates high-quality 44.1kHz WAV files.
+- **Similar Sounds**: Please do not worry about similar waveform sounds as i am a single developer and can't debug all sounds :c
 
 ## Installation
 
-Install the required dependencies:
+Requires Python 3.8+ and the following dependencies:
 
 ```bash
 pip install numpy scipy
@@ -18,67 +22,44 @@ pip install numpy scipy
 
 ## Usage
 
-### Basic Execution
-Running the script directly executes a demo sequence ("Daisy Bell") and generates a file named `daisy_midi.wav`.
+### Command Line
+
+Generate audio using the built-in example sequences:
 
 ```bash
 python notebox.py
 ```
 
-### Programmatic Usage
-Import the `IrisSynthesizer` class to generate custom audio within your own projects.
+This executes the default script and saves the output as `daisy_resonator_plate.wav`.
+
+### Python API
 
 ```python
-from notebox import IrisSynthesizer
+from notebox import SimpleNoteboxSynthesizer
 
-# Initialize the synthesizer
-synth = IrisSynthesizer()
+synth = SimpleNoteboxSynthesizer()
 
-# Compile a script using Iris Language syntax
-# Format: [Waveform Symbol][Note][Octave]:[Duration]
-# Example: '~' (Sine), 'A4' (Note A, Octave 4), ':1.0' (1 second)
-synth.compile_script("~A4:1.0 ^C5:0.5 #E5:0.5")
+# Compile a script string
+script = "^C4:1.0 ~E4:1.0 !G4:2.0"
+synth.compile_script(script)
 
-# Export the result to a WAV file
+# Save the result
 synth.save_wav("output.wav")
 ```
 
-## Iris Language Syntax
+### Script Syntax Overview
 
-The engine parses text strings to define sound parameters.
+- **Wave Symbols**: Single characters define the waveform (e.g., `~` for sine, `^` for sawtooth).
+- **Notes**: Standard notation (e.g., `C4`, `A#5`).
+- **Duration**: Appended with a colon (e.g., `:1.5` for 1.5 seconds/beats).
+- **Modifiers**: Supports vibrato, detuning, and polyphonic stacking.
 
-| Component | Description | Example |
-| :--- | :--- | :--- |
-| **Waveform** | A single character symbol defining the oscillator type. | `~` (Sine), `^` (Sawtooth), `#` (Square) |
-| **Note** | Musical note name (A-G) with optional sharp (#). | `C`, `F#`, `A` |
-| **Octave** | Integer following the note name. Default is 4. | `C4`, `A#5` |
-| **Duration** | Time in seconds, preceded by a colon. | `:1.5`, `:0.25` |
-| **Frequency** | Direct frequency in Hz can be used instead of notes. | `440hz` |
-| **Rest** | Indicates silence for a specific duration. | `-:1.0` |
+Refer to the source code for the complete mapping of symbols to waveform types.
 
-### Waveform Symbols (Selection)
-The library supports over 200 waveform types, including standard oscillators, physical modeling, FM synthesis, and retro chip sounds.
+## Examples
 
-*   `~`: Sine
-*   `^`: Sawtooth
-*   `#`: Square
-*   `!`: Triangle
-*   `k`: Karplus-Strong (Plucked String)
-*   `l`: Bell FM
-*   `🥁`: Kick Drum
-*   `𝕤`: Snare Crack
-*   `*`: White Noise
-*   `&`: Pink Noise
-
-*Refer to the `WAVE_MAP` dictionary in the source code for the complete list of supported symbols.*
-
-## Architecture
-
-*   **Oscillator Class**: Handles raw waveform generation using mathematical functions and signal processing techniques (e.g., Karplus-Strong, FM, Additive Synthesis).
-*   **Noise Generator**: Produces various noise colors (White, Pink, Brown, Violet) and environmental textures (Rain, Wind, Vinyl Crackle).
-*   **IrisLanguageParser**: Tokenizes script strings into `SynthCommand` objects.
-*   **IrisSynthesizer**: Orchestrates command processing, envelope application, and buffer concatenation.
+Pre-generated audio examples demonstrating various synthesis capabilities are located in the `examples/` directory.
 
 ## License
 
-Free to use and modify.
+Distributed under the MIT License. See `LICENSE` for more information.
