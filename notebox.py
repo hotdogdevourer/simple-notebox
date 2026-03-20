@@ -7228,6 +7228,39 @@ class SimpleNoteboxLanguageParser:
             ease_out=ease_out, is_rest=is_rest, vibrato=vibrato,
             noise_type=noise_type, nostalgic=nostalgic, polyphones=polyphones
         )
+waves = SimpleNoteboxLanguageParser.WAVE_MAP.items()
+noise_types = {
+    'white', 'gaussian', 'pink', 'brown', 'violet', 'blue', 'gray', 'black',
+    'dither', 'quantization', 'popcorn', 'impulse_noise', 'mixed_pink_white',
+    'bandpass_noise', 'am_static', 'vinyl_crackle', 'circuit_hiss', 'wind_like',
+    'rain_like', 'red', 'orange', 'green', 'velvet', 'perlin', 'fractal_noise',
+    'crinkle', 'thunder', 'fire_crackle', 'ocean_waves', 'river', 'forest',
+    'crowd_murmur', 'tape_hiss', 'radio_static', 'old_film', 'space_noise',
+    'submarine_sonar', 'geiger_counter', 'engine_idle', 'electric_hum',
+    'fan_noise', 'hard_drive', 'ticking_clock', 'morse_noise', 'heartbeat_noise',
+    'breathing', 'insect_swarm', 'bird_flock', 'digestive', 'lfsr_noise',
+    'lfsr_short', 'crypto_noise', 'bitwise_noise', 'modulated_noise',
+    'zipper_noise', 'glitch_noise', 'stutter_noise', 'reverse_crackle',
+    'pitched_noise', 'dust', 'scratch', 'bubbles', 'water_drops', 'metallic_hit',
+    'sizzle', 'whoosh', 'laser_noise', 'binaural_beat_noise', 'harmonic_noise',
+    'roughness_noise', 'kick_thud', 'snare_wire', 'hihat_noise', 'cymbal_sizzle',
+    'brush_sweep', 'drum_room', 'shaker_noise', 'rim_noise', 'tom_noise',
+    'clap_noise', 'metallic_noise', 'woodblock_noise', 'impact_noise',
+    'rain_heavy', 'rain_light', 'hail', 'wind_howl', 'tornado', 'earthquake',
+    'waterfall', 'cave_drip', 'jungle_rain', 'avalanche', 'deep_sea',
+    'electromagnetic', 'power_line', 'tesla_coil', 'static_electricity',
+    'wavelet_noise', 'spectral_noise', 'comb_noise', 'pinking_noise',
+    'blue_orange', 'plateau_noise', 'stepped_noise', 'fractal_fm_noise',
+    'texture_noise', 'chaotic_noise', 'lorenz_noise', 'drone_noise',
+    'noise_pad', 'shimmer', 'beating_tones', 'ring_down', 'convolution_noise',
+    'spectral_freeze', 'granular_noise', 'tape_saturation', 'vinyl_old',
+    'shellac_crackle', '8mm_projector', 'modem_screech', 'fax_screech',
+    'crt_whine', 'telephone_line', 'shortwave', 'paper_rustle', 'cloth_rub',
+    'keyboard_clack', 'footsteps', 'door_creak', 'glass_break', 'metal_scrape',
+    'wood_crack', 'frog_chorus', 'cricket', 'wolf_howl', 'whale_song',
+    'bat_echolocation', 'bees_hive'
+}
+
 class SimpleNoteboxSynthesizer:
     def __init__(self):
         self.sr = SAMPLE_RATE
@@ -7254,18 +7287,22 @@ class SimpleNoteboxSynthesizer:
     def process_command(self, cmd: SynthCommand):
         if cmd.is_rest:
             return np.zeros(int(self.sr * cmd.duration))
+        
         if cmd.polyphones:
             signals = []
             for p_note, p_octave, p_detune in cmd.polyphones:
                 freq = get_frequency(p_note, p_octave, p_detune)
+                
                 if cmd.noise_type:
                     sig = self.osc.generate_noise(cmd.noise_type, cmd.duration)
                 else:
                     sig = self.osc.generate(freq, cmd.duration, cmd.wave)
+                
                 if cmd.vibrato:
                     depth, rate = cmd.vibrato
                     sig = self.osc.apply_vibrato(sig, freq, depth, rate)
                 signals.append(sig)
+            
             combined = np.sum(signals, axis=0)
             if np.max(np.abs(combined)) > 0:
                 combined = combined / np.max(np.abs(combined)) * 0.9
@@ -7274,23 +7311,29 @@ class SimpleNoteboxSynthesizer:
             if cmd.frequency is not None:
                 freq = cmd.frequency
             else:
-                freq = get_frequency(cmd.note, cmd.octave, cmd.detune)
+                freq = get_frequency(cmd.note, cmd.octave, cmd.detune) 
+            
             if cmd.noise_type:
                 sig = self.osc.generate_noise(cmd.noise_type, cmd.duration)
             else:
                 sig = self.osc.generate(freq, cmd.duration, cmd.wave)
-            if cmd.vibrato:
+            
+            if cmd.vibrato and not cmd.noise_type:
                 depth, rate = cmd.vibrato
                 sig = self.osc.apply_vibrato(sig, freq, depth, rate)
-        if cmd.nostalgic:
-            bits, sr = cmd.nostalgic
-            sig = self.osc.apply_nostalgic_filter(sig, bits, sr)
-        if cmd.ease_out:
-            sig = self.apply_ease_out_envelope(sig)
-        else:
-            sig = self.apply_envelope(sig)
-        if np.max(np.abs(sig)) > 0:
-            sig = sig / np.max(np.abs(sig)) * 0.9
+            
+            if cmd.nostalgic:
+                bits, sr = cmd.nostalgic
+                sig = self.osc.apply_nostalgic_filter(sig, bits, sr)
+            
+            if cmd.ease_out:
+                sig = self.apply_ease_out_envelope(sig)
+            else:
+                sig = self.apply_envelope(sig)
+            
+            if np.max(np.abs(sig)) > 0:
+                sig = sig / np.max(np.abs(sig)) * 0.9
+                
         return sig
     def compile_script(self, script: str):
         commands = self.parser.parse(script)
@@ -7298,10 +7341,14 @@ class SimpleNoteboxSynthesizer:
         if buffer_list:
             self.audio_buffer = np.concatenate(buffer_list)
     def compile_from_arrays(self, pitches: np.ndarray, timings: np.ndarray,
-                           wave: str = "sine", note_is_midi: bool = True,
-                           time_unit: str = "beat", bpm: float = 120,
-                           ease_out: bool = False):
+                            wave: str = "sine", note_is_midi: bool = True,
+                            time_unit: str = "beat", bpm: float = 120,
+                            ease_out: bool = False):
         buffer_list = []
+        
+        # FIX: Define the noise types locally so we can check against them
+        # (Or import NOISE_SYMBOLS from your parser class if preferred
+
         for pitch, timing in zip(pitches, timings):
             if time_unit == "beat":
                 duration = timing * (60.0 / bpm)
@@ -7309,11 +7356,29 @@ class SimpleNoteboxSynthesizer:
                 duration = timing / 1000.0
             else:
                 duration = float(timing)
-            if note_is_midi:
-                cmd = SynthCommand(wave=wave, note=float(pitch), duration=duration, ease_out=ease_out)
+
+            # FIX LOGIC HERE:
+            if wave in noise_types:
+                # If the wave name is a noise type, create command with noise_type set
+                # and wave set to "noise" (or whatever dummy value, as long as noise_type is set)
+                cmd = SynthCommand(wave="noise", note=float(pitch) if note_is_midi else None, 
+                                   frequency=float(pitch) if not note_is_midi else None,
+                                   duration=duration, ease_out=ease_out, noise_type=wave)
             else:
-                cmd = SynthCommand(wave=wave, frequency=float(pitch), duration=duration, ease_out=ease_out)
-            buffer_list.append(self.process_command(cmd))
+                # Standard waveform
+                if note_is_midi:
+                    cmd = SynthCommand(wave=wave, note=float(pitch), duration=duration, ease_out=ease_out)
+                else:
+                    cmd = SynthCommand(wave=wave, frequency=float(pitch), duration=duration, ease_out=ease_out)
+            
+            sig = self.process_command(cmd)
+            
+            # Debug print to ensure we aren't getting zeros
+            if sig is None or len(sig) == 0 or np.max(np.abs(sig)) < 1e-9:
+                print(f"WARNING: Generated silence for pitch {pitch} with wave {wave}")
+            
+            buffer_list.append(sig)
+
         if buffer_list:
             self.audio_buffer = np.concatenate(buffer_list)
     def save_wav(self, filename="output.wav"):
@@ -7348,7 +7413,13 @@ DAISY_TIMINGS = np.array([
     1,  1,  1,  1,  2,  1,  1,  4,  1,  2,  1,  2,  1,  1,  5,
     1,  2,  1,  2,  1,  2,  1,  1,  1,  1,  1,  1,  1,  2,  1,  6
 ])
-    
+path = "C:/cp/notebox/examples/"
+with open(path + 'debug.txt', 'w') as f:
+    f.write('')
+synth = SimpleNoteboxSynthesizer()
+wave_count = 0
+for _, wave in waves: wave_count += 1
+print(wave_count)
 synth = SimpleNoteboxSynthesizer()
 wave = "resonator_plate"
 synth.compile_from_arrays(
@@ -7361,3 +7432,23 @@ synth.compile_from_arrays(
     bpm=330
 )
 synth.save_wav(f"daisy_{wave}.wav")
+"""
+for _, wave in waves:
+    try:
+        with open(path + f'daisy_{wave}.wav', 'r') as f: continue
+    except:
+        try:
+            synth.compile_from_arrays(
+                DAISY_PITCHES, 
+                DAISY_TIMINGS, 
+                wave=wave, 
+                note_is_midi=1,
+                time_unit="beat", 
+                ease_out=False,
+                bpm=330
+            )
+            synth.save_wav(path + f"daisy_{wave}.wav")
+            with open(path + 'debug.txt', 'a') as f:
+                f.write(f"daisy_{wave}.wav\n")
+        except: pass
+"""
