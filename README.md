@@ -4,7 +4,7 @@ A procedural audio synthesis library and command-line tool written in Python. No
 
 ## Features
 
-- **Extensive Waveform Library**: Over 300 unique waveform types ranging from standard analog shapes to chaotic attractors and vintage chip emulations.
+- **Extensive Waveform Library**: 696 (may differ) maybe-unique waveform types ranging from standard analog shapes to chaotic attractors and vintage chip emulations.
 - **Custom Scripting Language**: A concise syntax for defining notes, durations, wave types, and modulation parameters.
 - **Procedural Noise Generation**: Includes colored noise, environmental textures, and algorithmic sound effects.
 - **Physical Modeling**: Simulates strings, membranes, tubes, and resonant bodies.
