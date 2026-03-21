@@ -4,6 +4,7 @@ from scipy.io import wavfile
 import math
 import re
 import time
+import difflib
 from dataclasses import dataclass, field
 from typing import Optional, List, Union, Tuple
 SAMPLE_RATE = 44100
@@ -7203,13 +7204,36 @@ class SimpleNoteboxLanguageParser:
             if dur_match:
                 duration = float(dur_match.group(1))
             return SynthCommand(wave="sine", duration=duration, is_rest=True, ease_out=ease_out)
-        if token and token[0] in self.WAVE_MAP:
+        wave_matched = False
+        
+        numeric_match = re.match(r'^(\d+)', token)
+        if numeric_match:
+            wave_id = numeric_match.group(1)
+            if wave_id in self.WAVE_MAP:
+                wave = self.WAVE_MAP[wave_id]
+                token = token[len(wave_id):]
+                wave_matched = True
+        
+        if not wave_matched and token and token[0] in self.WAVE_MAP:
             symbol = token[0]
             wave = self.WAVE_MAP[symbol]
-            if symbol in self.NOISE_SYMBOLS:
-                noise_type = wave
-                wave = "noise"
             token = token[1:]
+            wave_matched = True
+        
+        if not wave_matched:
+            name_match = re.match(r'^([a-z_]+)', token, re.IGNORECASE)
+            if name_match:
+                potential_name = name_match.group(1).lower()
+                wave_names = list(self.WAVE_MAP.values())
+                close_matches = difflib.get_close_matches(potential_name, wave_names, n=1, cutoff=0.6)
+                if close_matches:
+                    wave = close_matches[0]
+                    token = token[len(potential_name):]
+                    wave_matched = True
+        
+        if wave in self.NOISE_SYMBOLS or wave in ['white', 'pink', 'brown', 'gaussian']:
+            noise_type = wave
+            wave = "noise"
         hz_match = re.match(r'^([\d.]+)hz?', token, re.IGNORECASE)
         if hz_match:
             freq = float(hz_match.group(1))
@@ -7426,7 +7450,78 @@ DAISY_TIMINGS = np.array([
     1,  1,  1,  1,  2,  1,  1,  4,  1,  2,  1,  2,  1,  1,  5,
     1,  2,  1,  2,  1,  2,  1,  1,  1,  1,  1,  1,  1,  2,  1,  6
 ])
+
+DAISY_SCRIPT = """
+58C4:0.373
+58A#4:0.373
+58A#4:0.373
+58C4:0.373
+58A#4:0.373
+58A#4:0.373
+58C4:0.373
+58A#4:0.373
+58A#4:0.373
+58C4:0.373
+58A#4:0.373
+58A#4:0.373
+58D5:0.448
+58B4:0.448
+58G4:0.448
+58D4:0.448
+58E4:0.149
+58F#4:0.149
+58G4:0.149
+58E4:0.299
+58G4:0.149
+58D4:0.896
+58A4:0.448
+58D5:0.448
+58B4:0.448
+58G4:0.448
+58E4:0.149
+58F#4:0.149
+58G4:0.149
+58A4:0.299
+58B4:0.149
+58A4:0.896
+58B4:0.149
+58C5:0.149
+58B4:0.149
+58A4:0.149
+58D5:0.299
+58B4:0.149
+58A4:0.149
+58G4:0.597
+58A4:0.149
+58B4:0.299
+58G4:0.149
+58E4:0.299
+58G4:0.149
+58E4:0.149
+58D4:0.746
+58D4:0.149
+58G4:0.299
+58B4:0.149
+58A4:0.299
+58D4:0.149
+58G4:0.299
+58B4:0.149
+58A4:0.149
+58B4:0.149
+58C5:0.149
+58D5:0.149
+58B4:0.149
+58G4:0.149
+58A4:0.299
+58D4:0.149
+58G4:0.896
+"""
+synth = SimpleNoteboxSynthesizer()
 path = "C:/cp/notebox/examples/"
+synth.compile_script(DAISY_SCRIPT)
+synth.save_wav(path + "daisy_script.wav")
+
+"""
 with open(path + 'debug.txt', 'w') as f:
     f.write('')
 synth = SimpleNoteboxSynthesizer()
@@ -7445,6 +7540,8 @@ synth.compile_from_arrays(
     bpm=330
 )
 synth.save_wav(f"daisy_{wave}.wav")
+"""
+
 """
 for _, wave in waves:
     try:
