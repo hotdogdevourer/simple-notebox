@@ -40,7 +40,7 @@ from notebox import SimpleNoteboxSynthesizer
 synth = SimpleNoteboxSynthesizer()
 
 # Compile a script string
-script = "^C4:1.0 ~E4:1.0 !G4:2.0"
+script = "4C4:1.0 5E4:1.0 6G4:2.0"
 synth.compile_script(script)
 
 # Save the result
@@ -49,7 +49,7 @@ synth.save_wav("output.wav")
 
 ### Script Syntax Overview
 
-- **Wave Symbols**: Single characters define the waveform (e.g., `~` for sine, `^` for sawtooth).
+- **Wave Symbols**: Single characters define the waveform (e.g., `4` for sine, `5` for sawtooth).
 - **Notes**: Standard notation (e.g., `C4`, `A#5`).
 - **Duration**: Appended with a colon (e.g., `:1.5` for 1.5 seconds/beats).
 - **Modifiers**: Supports vibrato, detuning, and polyphonic stacking.
